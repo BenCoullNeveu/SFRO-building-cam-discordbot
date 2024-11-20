@@ -1,4 +1,5 @@
 from playwright.async_api import async_playwright
+import time
 import discord
 from discord.ext import tasks
 from dotenv import load_dotenv
@@ -19,16 +20,26 @@ async def fetch_images():
         page = await browser.new_page()
 
         await page.goto("https://status.starfront.space/")
+        
+        await page.reload()
+        
         await page.wait_for_selector("img")
 
         image_urls = await page.evaluate("""
             Array.from(document.querySelectorAll('img'), img => img.src)
         """)
 
-        building_5_images = [url for url in image_urls if "building-0005" in url]
+        timestamp = int(time.time())
+        building_images = [
+            f"{url}?cache_bust={timestamp}" if "building-0005" in url else None
+            for url in image_urls
+        ]
+        
+        building_5_image = [url for url in building_images if url is not None]
+        print(building_5_image)
 
         await browser.close()
-        return building_5_images
+        return building_5_image
 
 @tasks.loop(seconds=60)
 async def check_and_post_images():
