@@ -29,7 +29,7 @@ async def fetch_and_post_image():
     soup = BeautifulSoup(response.content, 'html.parser')
 
     # Locate the 'Building 5' image
-    building_5_section = soup.find('div', alt="Starfront Building 5")
+    building_5_section = soup.find('img', alt="Starfront Building 5")
     if building_5_section:
         img_tag = building_5_section.find('img')
         if img_tag:
