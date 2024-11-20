@@ -5,8 +5,8 @@ from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 
 # Discord bot setup
-TOKEN = 'your_bot_token_here'
-CHANNEL_ID = your_channel_id  # Replace with your Discord channel ID
+TOKEN = 'https://discordapp.com/api/webhooks/1308820117060194364/SVrIqG-3kIXWK0DfKM5gQv8qdOQ4-jErHAPfoMDrq9PcbGHgWYbSLmVsiYB434QJGWp5'
+CHANNEL_ID = building-cam  # Replace with your Discord channel ID
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -20,7 +20,7 @@ async def on_ready():
     print(f'{client.user} has connected to Discord!')
     fetch_and_post_image.start()
 
-@tasks.loop(minutes=10)  # Adjust the interval as needed
+@tasks.loop(minutes=1)
 async def fetch_and_post_image():
     global last_posted_image
     url = 'https://status.starfront.space/'
@@ -28,7 +28,7 @@ async def fetch_and_post_image():
     soup = BeautifulSoup(response.content, 'html.parser')
 
     # Locate the 'Building 5' image
-    building_5_section = soup.find('div', id='building-5')  # Adjust based on actual HTML structure
+    building_5_section = soup.find('div', alt="Starfront Building 5')
     if building_5_section:
         img_tag = building_5_section.find('img')
         if img_tag:
