@@ -5,8 +5,8 @@ from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 
 # Discord bot setup
-TOKEN = 'https://discordapp.com/api/webhooks/1308820117060194364/SVrIqG-3kIXWK0DfKM5gQv8qdOQ4-jErHAPfoMDrq9PcbGHgWYbSLmVsiYB434QJGWp5'
-CHANNEL_ID = building-cam  # Replace with your Discord channel ID
+TOKEN = 'MTMwODgyMTczODY3NDcxNjc0NA.GNZFZa.XmLa_Stov1AUxOyB5nQ8V-CUSWxY5o3rvyVr1c'
+CHANNEL_ID = 1308820057635295303
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -28,7 +28,7 @@ async def fetch_and_post_image():
     soup = BeautifulSoup(response.content, 'html.parser')
 
     # Locate the 'Building 5' image
-    building_5_section = soup.find('div', alt="Starfront Building 5')
+    building_5_section = soup.find('div', alt="Starfront Building 5")
     if building_5_section:
         img_tag = building_5_section.find('img')
         if img_tag:
