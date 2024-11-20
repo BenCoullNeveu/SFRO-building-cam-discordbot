@@ -36,7 +36,6 @@ async def fetch_images():
         ]
         
         building_5_image = [url for url in building_images if url is not None]
-        print(building_5_image)
 
         await browser.close()
         return building_5_image
