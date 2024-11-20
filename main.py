@@ -3,9 +3,10 @@ from discord.ext import tasks
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
+from dotenv import load_dotenv
 
-# Discord bot setup
-TOKEN = 'MTMwODgyMTczODY3NDcxNjc0NA.GNZFZa.XmLa_Stov1AUxOyB5nQ8V-CUSWxY5o3rvyVr1c'
+load_dotenv()
+TOKEN = os.getenv("DISCORD_TOKEN")
 CHANNEL_ID = 1308820057635295303
 
 intents = discord.Intents.default()
