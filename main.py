@@ -1,8 +1,6 @@
+from playwright.async_api import async_playwright
 import discord
 from discord.ext import tasks
-import requests
-from bs4 import BeautifulSoup
-from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -10,35 +8,55 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 CHANNEL_ID = 1308820057635295303
 
 intents = discord.Intents.default()
-intents.message_content = True
 client = discord.Client(intents=intents)
 
-# Track the last posted image URL to avoid duplicates
-last_posted_image = None
+message_ids = []
+
+async def fetch_images():
+    """Fetch images from the web page."""
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        page = await browser.new_page()
+
+        await page.goto("https://status.starfront.space/")
+        await page.wait_for_selector("img")
+
+        image_urls = await page.evaluate("""
+            Array.from(document.querySelectorAll('img'), img => img.src)
+        """)
+
+        building_5_images = [url for url in image_urls if "building-0005" in url]
+
+        await browser.close()
+        return building_5_images
+
+@tasks.loop(seconds=60)
+async def check_and_post_images():
+    """Fetch images and manage Discord channel messages."""
+    global message_ids
+    images = await fetch_images()
+    channel = client.get_channel(CHANNEL_ID)
+
+    if not channel:
+        print(f"Channel with ID {CHANNEL_ID} not found.")
+        return
+
+    for img_url in images:
+        message = await channel.send(img_url)
+        message_ids.append(message.id)
+
+    while len(message_ids) > 10:
+        oldest_message_id = message_ids.pop(0)
+        try:
+            old_message = await channel.fetch_message(oldest_message_id)
+            await old_message.delete()
+        except discord.NotFound:
+            print(f"Message with ID {oldest_message_id} not found. Skipping deletion.")
 
 @client.event
 async def on_ready():
-    print(f'{client.user} has connected to Discord!')
-    fetch_and_post_image.start()
-
-@tasks.loop(minutes=1)
-async def fetch_and_post_image():
-    global last_posted_image
-    url = 'https://status.starfront.space/'
-    response = requests.get(url)
-    soup = BeautifulSoup(response.content, 'html.parser')
-
-    # Locate the 'Building 5' image
-    building_5_section = soup.find('img', alt="Starfront Building 5")
-    if building_5_section:
-        img_tag = building_5_section.find('img')
-        if img_tag:
-            img_url = img_tag['src']
-            if img_url != last_posted_image:
-                last_posted_image = img_url
-                channel = client.get_channel(CHANNEL_ID)
-                message = await channel.send(img_url)
-                # Schedule deletion after 1 hour
-                await message.delete(delay=3600)
+    """Start the task loop when the bot is ready."""
+    print(f"{client.user} has connected to Discord!")
+    check_and_post_images.start()
 
 client.run(TOKEN)
